@@ -1,6 +1,8 @@
 const User = require('../model/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const nodemailer = require('nodemailer');
+const crypto = require('crypto');
 
 const register = async (req, res) => {
    const { first_name, last_name, email, password, confirm_password } = req.body;
@@ -29,7 +31,7 @@ const register = async (req, res) => {
       res.status(201).json({ message: "User registered successfully." })
 
    } catch (error) {
-      res.status(500).json({ message: `Server Error: ${error}` });
+      res.status(500).json({ message: `Server Error: ${error.message}` });
    }
 }
 
@@ -65,15 +67,34 @@ const login = async (req, res) => {
       })
 
    } catch (error) {
-      res.status(500).json({ message: `Server Error: ${error}` });
+      res.status(500).json({ message: `Server Error: ${error.message}` });
    }
 }
 
 const forgotPassword = async (req, res) => {
+   const { email } = req.body;
+
    try {
 
-   } catch (error) {
+      if (!email) {
+         return res.status(400).json({ message: "All fields are required." });
+      }
 
+      const user = await User.findOne({ email });
+      if (!user) {
+         return res.status(400).json({ message: "No account found" });
+      }
+
+      const resetToken = crypto.randomBytes(32).toString('hex');
+      const resetTokenExpire = Date.now() + 15 * 60 * 1000;
+
+      user.reset_token = resetToken;
+      user.reset_token_expire = resetTokenExpire;
+      await user.save();
+
+
+   } catch (error) {
+      res.status(500).json({ message: `Server Error: ${error.message}` });
    }
 }
 
