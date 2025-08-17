@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
+const { sendPasswordReset } = require('../utils/emailService');
 
 const register = async (req, res) => {
    const { first_name, last_name, email, password, confirm_password } = req.body;
@@ -12,8 +13,8 @@ const register = async (req, res) => {
          return res.status(400).json({ message: "All fields are required." });
       }
 
-      const userExist = await User.findOne({ email });
-      if (userExist) {
+      const user = await User.findOne({ email });
+      if (user) {
          return res.status(400).json({ message: "User already exists." });
       }
 
@@ -21,14 +22,22 @@ const register = async (req, res) => {
          return res.status(400).json({ message: "Password does not match." });
       }
 
-      await User.create({
+      const newUser = await User.create({
          first_name,
          last_name,
          email,
          password
       });
 
-      res.status(201).json({ message: "User registered successfully." })
+      res.status(201).json({
+         message: "User registered successfully.",
+         data: {
+            id: newUser._id,
+            first_name: newUser.first_name,
+            last_name: newUser.last_name,
+            email: newUser.email
+         }
+      })
 
    } catch (error) {
       res.status(500).json({ message: `Server Error: ${error.message}` });
@@ -63,7 +72,11 @@ const login = async (req, res) => {
 
       res.status(200).json({
          message: "Login successfully",
-         token
+         token,
+         data: {
+            id: user._id,
+            email: user.email
+         }
       })
 
    } catch (error) {
@@ -85,13 +98,16 @@ const forgotPassword = async (req, res) => {
          return res.status(400).json({ message: "No account found" });
       }
 
-      const resetToken = crypto.randomBytes(32).toString('hex');
-      const resetTokenExpire = Date.now() + 15 * 60 * 1000;
+      const reset_token = crypto.randomBytes(32).toString('hex');
+      const reset_token_expire = Date.now() + 15 * 60 * 1000;
 
-      user.reset_token = resetToken;
-      user.reset_token_expire = resetTokenExpire;
+      user.reset_token = reset_token;
+      user.reset_token_expire = reset_token_expire;
       await user.save();
 
+      await sendPasswordReset(email, reset_token, user._id);
+
+      res.status(200).json({ message: "Successfully sent OTP to the email" });
 
    } catch (error) {
       res.status(500).json({ message: `Server Error: ${error.message}` });
@@ -99,10 +115,45 @@ const forgotPassword = async (req, res) => {
 }
 
 const resetPassword = async (req, res) => {
+
+   const { password, confirm_password } = req.body;
+   const { reset_token, user_id } = req.params;
+
    try {
 
-   } catch (error) {
+      if (!reset_token && !user_id) {
+         return res.status(400).json({ message: "Invalid or missing token and id" });
+      }
 
+      if (!password || !confirm_password) {
+         return res.status(400).json({ message: "All fields are required." });
+      }
+
+      if (password !== confirm_password) {
+         return res.status(400).json({ message: "Password does not match." });
+      }
+
+      const user = await User.findOne({
+         _id: user_id,
+         reset_token: reset_token,
+         reset_token_expire: { $gt: Date.now() }
+      });
+
+      if (!user) {
+         return res.status(400).json({ message: "Invalid or expired reset token." });
+      }
+
+      const hash_password = await bcrypt.hash(password, 10);
+
+      user.password = hash_password;
+      user.reset_token = undefined;
+      user.reset_token_expire = undefined;
+      await user.save();
+
+      res.status(200).json({ message: "Password reset successfully." })
+
+   } catch (error) {
+      res.status(500).json({ message: `Server Error: ${error.message}` });
    }
 }
 
