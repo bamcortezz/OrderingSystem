@@ -6,7 +6,8 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem("token") || null);
 
-  const API = process.env.BACKEND_URL;
+  const API =
+    import.meta.env.VITE_BACKEND_URL || "http://localhost:5000/api/auth";
 
   const register = async (formData) => {
     try {
@@ -44,6 +45,11 @@ export const AuthProvider = ({ children }) => {
         throw new Error(data.message);
       }
 
+      setToken(data.token);
+      localStorage.setItem("token", data.token);
+
+      setUser(data.user);
+
       return data;
     } catch (error) {
       throw error;
@@ -80,7 +86,7 @@ export const AuthProvider = ({ children }) => {
   ) => {
     try {
       const response = await fetch(
-        `${API}/reset-password/${user_id}/${reset_token}`,
+        `${API}/reset-password/${reset_token}/${user_id}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -89,7 +95,10 @@ export const AuthProvider = ({ children }) => {
       );
 
       const data = await response.json();
-      if (!response.ok) throw new Error(data.message);
+
+      if (!response.ok) {
+        throw new Error(data.message);
+      }
 
       return data;
     } catch (error) {

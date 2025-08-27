@@ -34,7 +34,6 @@ const sendPasswordReset = async (email, resetToken, userId) => {
       return true
 
    } catch (error) {
-      console.error("Error sending: ", error);
       throw error;
    }
 }
