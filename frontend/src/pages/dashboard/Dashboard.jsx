@@ -24,8 +24,7 @@ const Dashboard = () => {
 
         {user ? (
           <p className="text-white text-center mb-6 text-sm sm:text-base">
-            Welcome,{" "}
-            <span className="font-semibold">{user.name || user.email}</span>!
+            Welcome, <span className="font-semibold">{user.first_name}</span>!
           </p>
         ) : (
           <p className="text-white text-center mb-6 text-sm sm:text-base">

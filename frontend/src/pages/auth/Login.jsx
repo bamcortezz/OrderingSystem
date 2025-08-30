@@ -1,33 +1,40 @@
 import { React, useState, useContext } from "react";
 import { AuthContext } from "../../context/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
+
 const Login = () => {
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
+    remember: false,
   });
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [name]: type === "checkbox" ? checked : value,
     });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
     try {
       const response = await login(formData);
       alert(response.message);
-
       navigate("/dashboard");
     } catch (error) {
       alert(error.message);
+    } finally {
+      setLoading(false);
     }
   };
+
   return (
     <div className="flex items-center justify-center min-h-screen bg-black px-4">
       <div className="w-full max-w-md bg-neutral-900 shadow-lg rounded-lg p-8 border border-neutral-800">
@@ -62,10 +69,27 @@ const Login = () => {
             />
           </div>
 
+          <div className="flex items-center justify-between text-neutral-400 text-sm">
+            <label className="flex items-center">
+              <input
+                type="checkbox"
+                name="remember"
+                checked={formData.remember}
+                onChange={handleChange}
+                className="mr-2 accent-white"
+              />
+              Remember me
+            </label>
+            <Link to="/forgot-password" className="text-white hover:underline">
+              Forgot Password?
+            </Link>
+          </div>
+
           <button
             type="submit"
-            className="w-full bg-white text-black font-semibold py-2 px-4 rounded-lg hover:bg-neutral-200 transition">
-            Login
+            disabled={loading}
+            className="w-full bg-white text-black font-semibold py-2 px-4 rounded-lg hover:bg-neutral-200 transition disabled:opacity-50">
+            {loading ? "Logging in..." : "Login"}
           </button>
         </form>
 

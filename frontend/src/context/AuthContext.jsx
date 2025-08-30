@@ -3,15 +3,16 @@ import { createContext, useState, useEffect } from "react";
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(
+    JSON.parse(localStorage.getItem("user")) || null
+  );
   const [token, setToken] = useState(localStorage.getItem("token") || null);
 
-  const API =
-    import.meta.env.VITE_BACKEND_URL || "http://localhost:5000/api/auth";
+  const API = import.meta.env.VITE_BACKEND_URL;
 
   const register = async (formData) => {
     try {
-      const response = await fetch(`${API}/register`, {
+      const response = await fetch(`${API}/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
@@ -31,7 +32,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (formData) => {
     try {
-      const response = await fetch(`${API}/login`, {
+      const response = await fetch(`${API}/api/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -45,10 +46,10 @@ export const AuthProvider = ({ children }) => {
         throw new Error(data.message);
       }
 
+      setUser(data.data);
       setToken(data.token);
+      localStorage.setItem("user", JSON.stringify(data.data));
       localStorage.setItem("token", data.token);
-
-      setUser(data.user);
 
       return data;
     } catch (error) {
@@ -58,12 +59,12 @@ export const AuthProvider = ({ children }) => {
 
   const forgotPassword = async (email) => {
     try {
-      const response = await fetch(`${API}/forgot-password`, {
+      const response = await fetch(`${API}/api/auth/forgot-password`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(email),
+        body: JSON.stringify({ email }),
       });
 
       const data = await response.json();
@@ -71,6 +72,8 @@ export const AuthProvider = ({ children }) => {
       if (!response.ok) {
         throw new Error(data.message);
       }
+
+      console.log(data);
 
       return data;
     } catch (error) {
@@ -86,7 +89,7 @@ export const AuthProvider = ({ children }) => {
   ) => {
     try {
       const response = await fetch(
-        `${API}/reset-password/${reset_token}/${user_id}`,
+        `${API}/api/auth/reset-password/${user_id}/${reset_token}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -95,10 +98,7 @@ export const AuthProvider = ({ children }) => {
       );
 
       const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message);
-      }
+      if (!response.ok) throw new Error(data.message);
 
       return data;
     } catch (error) {
@@ -111,12 +111,6 @@ export const AuthProvider = ({ children }) => {
     setToken(null);
     localStorage.removeItem("token");
   };
-
-  useEffect(() => {
-    if (token) {
-      setUser({ email: "placeholder" });
-    }
-  }, [token]);
 
   return (
     <AuthContext.Provider

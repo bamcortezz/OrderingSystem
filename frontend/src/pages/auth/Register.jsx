@@ -13,6 +13,7 @@ const Register = () => {
     password: "",
     confirm_password: "",
   });
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -23,6 +24,7 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
     try {
       const response = await register(formData);
@@ -30,12 +32,13 @@ const Register = () => {
       navigate("/login");
     } catch (error) {
       alert(error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-black px-4">
-      {/* ✅ Added px-4 for mobile horizontal spacing */}
       <div className="w-full max-w-md bg-neutral-900 shadow-lg rounded-lg p-8 border border-neutral-800">
         <h2 className="text-2xl font-bold text-center text-white mb-6">
           Create Account
@@ -112,8 +115,9 @@ const Register = () => {
 
           <button
             type="submit"
-            className="w-full bg-white text-black font-semibold py-2 px-4 rounded-lg hover:bg-neutral-200 transition">
-            Register
+            disabled={loading}
+            className="w-full bg-white text-black font-semibold py-2 px-4 rounded-lg hover:bg-neutral-200 transition disabled:opacity-50">
+            {loading ? "Registering..." : "Register"}
           </button>
         </form>
 
