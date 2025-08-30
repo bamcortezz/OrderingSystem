@@ -12,7 +12,7 @@ import Dashboard from "./pages/dashboard/Dashboard";
 
 // PrivateRoute wrapper
 const PrivateRoute = ({ children }) => {
-  const { token } = useContext(AuthContext); // assuming your AuthContext stores token
+  const { token } = useContext(AuthContext);
   return token ? children : <Navigate to="/login" replace />;
 };
 
