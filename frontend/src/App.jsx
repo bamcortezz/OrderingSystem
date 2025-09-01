@@ -9,6 +9,7 @@ import {
 import Register from "./pages/auth/Register";
 import Login from "./pages/auth/Login";
 import ForgotPassword from "./pages/auth/ForgotPassword";
+import ResetPassword from "./pages/auth/ResetPassword";
 import Dashboard from "./pages/dashboard/Dashboard";
 
 // PrivateRoute wrapper
@@ -25,8 +26,15 @@ const App = () => {
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route
+            path="/reset-password/:user_id/:reset_token"
+            element={<ResetPassword />}
+          />
+          <Route
+            path="/reset-password"
+            element={<Navigate to="/login" replace />}
+          />
 
-          {/* Protected route */}
           <Route
             path="/dashboard"
             element={
@@ -35,8 +43,6 @@ const App = () => {
               </PrivateRoute>
             }
           />
-
-          {/* Redirect root to login */}
           <Route path="/" element={<Navigate to="/login" replace />} />
         </Routes>
       </Router>

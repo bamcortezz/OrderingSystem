@@ -1,6 +1,7 @@
 import { React, useState, useContext } from "react";
 import { AuthContext } from "../../context/AuthContext";
 import { Link } from "react-router-dom";
+import Swal from "sweetalert2";
 
 const ForgotPassword = () => {
   const { forgotPassword } = useContext(AuthContext);
@@ -13,10 +14,28 @@ const ForgotPassword = () => {
 
     try {
       const response = await forgotPassword(email);
-      alert(response.message);
+
+      Swal.fire({
+        toast: true,
+        position: "top-end",
+        icon: "success",
+        title: response.message,
+        showConfirmButton: false,
+        timer: 1500,
+        timerProgressBar: true,
+      });
+
       setEmail("");
     } catch (error) {
-      alert(error.message);
+      Swal.fire({
+        toast: true,
+        position: "top-end",
+        icon: "error",
+        title: error.message,
+        showConfirmButton: false,
+        timer: 1500,
+        timerProgressBar: true,
+      });
     } finally {
       setLoading(false);
     }

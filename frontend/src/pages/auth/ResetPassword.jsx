@@ -1,16 +1,13 @@
 import { React, useState, useContext } from "react";
 import { AuthContext } from "../../context/AuthContext";
-import { useNavigate, Link } from "react-router-dom";
-import Swal from "sweetalert2";
+import { useNavigate, useParams, Link } from "react-router-dom";
 
-const Register = () => {
-  const { register } = useContext(AuthContext);
+const ResetPassword = () => {
+  const { resetPassword } = useContext(AuthContext);
+  const { user_id, reset_token } = useParams();
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
-    first_name: "",
-    last_name: "",
-    email: "",
     password: "",
     confirm_password: "",
   });
@@ -19,9 +16,10 @@ const Register = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleChange = (e) => {
+    const { name, value } = e.target;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [name]: value,
     });
   };
 
@@ -30,29 +28,16 @@ const Register = () => {
     setLoading(true);
 
     try {
-      const response = await register(formData);
-
-      Swal.fire({
-        toast: true,
-        position: "top-end",
-        icon: "success",
-        title: response.message,
-        showConfirmButton: false,
-        timer: 3000,
-        timerProgressBar: true,
-      });
-
+      const response = await resetPassword(
+        user_id,
+        reset_token,
+        formData.password,
+        formData.confirm_password
+      );
+      alert(response.message);
       navigate("/login");
     } catch (error) {
-      Swal.fire({
-        toast: true,
-        position: "top-end",
-        icon: "error",
-        title: error.message,
-        showConfirmButton: false,
-        timer: 3000,
-        timerProgressBar: true,
-      });
+      alert(error.message);
     } finally {
       setLoading(false);
     }
@@ -91,57 +76,20 @@ const Register = () => {
     <div className="flex items-center justify-center min-h-screen bg-black px-4">
       <div className="w-full max-w-md bg-neutral-900 shadow-lg rounded-lg p-8 border border-neutral-800">
         <h2 className="text-2xl font-bold text-center text-white mb-6">
-          Create Account
+          Reset Password
         </h2>
+        <p className="text-neutral-400 text-center mb-6">
+          Enter your new password below
+        </p>
+
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="flex flex-col md:flex-row gap-3">
-            <div>
-              <label className="block text-neutral-300 mb-1">First Name</label>
-              <input
-                type="text"
-                name="first_name"
-                value={formData.first_name}
-                placeholder="First Name"
-                onChange={handleChange}
-                required
-                className="w-full px-3 py-2 border border-neutral-700 rounded-lg bg-neutral-800 text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-white"
-              />
-            </div>
-
-            <div>
-              <label className="block text-neutral-300 mb-1">Last Name</label>
-              <input
-                type="text"
-                name="last_name"
-                placeholder="Last Name"
-                value={formData.last_name}
-                onChange={handleChange}
-                required
-                className="w-full px-3 py-2 border border-neutral-700 rounded-lg bg-neutral-800 text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-white"
-              />
-            </div>
-          </div>
-
           <div>
-            <label className="block text-neutral-300 mb-1">Email</label>
-            <input
-              type="email"
-              name="email"
-              placeholder="Email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-              className="w-full px-3 py-2 border border-neutral-700 rounded-lg bg-neutral-800 text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-white"
-            />
-          </div>
-
-          <div>
-            <label className="block text-neutral-300 mb-1">Password</label>
+            <label className="block text-neutral-300 mb-1">New Password</label>
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
                 name="password"
-                placeholder="Password"
+                placeholder="Enter new password"
                 value={formData.password}
                 onChange={handleChange}
                 required
@@ -164,7 +112,7 @@ const Register = () => {
               <input
                 type={showConfirmPassword ? "text" : "password"}
                 name="confirm_password"
-                placeholder="Confirm Password"
+                placeholder="Confirm new password"
                 value={formData.confirm_password}
                 onChange={handleChange}
                 required
@@ -182,13 +130,13 @@ const Register = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-white text-black font-semibold py-2 px-4 rounded-lg hover:bg-neutral-200 transition disabled:opacity-50">
-            {loading ? "Registering..." : "Register"}
+            className="w-full bg-white text-black font-semibold py-2 px-4 rounded-lg hover:bg-neutral-200 transition disabled:opacity-50 mt-4">
+            {loading ? "Resetting..." : "Reset Password"}
           </button>
         </form>
 
         <p className="mt-4 text-center text-neutral-400">
-          Already have an account?{" "}
+          Remember your password?{" "}
           <Link to="/login" className="text-white hover:underline">
             Login
           </Link>
@@ -198,4 +146,4 @@ const Register = () => {
   );
 };
 
-export default Register;
+export default ResetPassword;

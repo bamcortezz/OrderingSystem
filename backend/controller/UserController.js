@@ -122,7 +122,7 @@ const resetPassword = async (req, res) => {
 
    try {
 
-      if (!reset_token && !user_id) {
+      if (!reset_token || !user_id) {
          return res.status(400).json({ message: "Invalid or missing token and id" });
       }
 
@@ -144,9 +144,7 @@ const resetPassword = async (req, res) => {
          return res.status(400).json({ message: "Invalid or expired reset token." });
       }
 
-      const hash_password = await bcrypt.hash(password, 10);
-
-      user.password = hash_password;
+      user.password = password;
       user.reset_token = undefined;
       user.reset_token_expire = undefined;
       await user.save();
